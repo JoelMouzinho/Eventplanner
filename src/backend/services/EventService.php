@@ -133,6 +133,7 @@ function getCurrentEventId(PDO $pdo, int $userId): int
     }
 
     redirect('/events/');
+    return 0;
 }
 
 /**
@@ -346,4 +347,41 @@ function deleteEventAsAdmin(PDO $pdo, int $eventId): void
 {
     $stmt = $pdo->prepare('DELETE FROM events WHERE id = :id');
     $stmt->execute(['id' => $eventId]);
+}
+/**
+ * Gibt den Freigabe-Token für ein Event zurück und erzeugt bei Bedarf einen neuen.
+ */
+function ensureShareToken(PDO $pdo, int $eventId): string
+{
+    $stmt = $pdo->prepare('SELECT share_token FROM events WHERE id = :id');
+    $stmt->execute(['id' => $eventId]);
+    $token = $stmt->fetchColumn();
+
+    if ($token) {
+        return $token;
+    }
+
+    // Token generieren und speichern
+    $token = bin2hex(random_bytes(16));
+
+    $updateStmt = $pdo->prepare('UPDATE events SET share_token = :token WHERE id = :id');
+    $updateStmt->execute(['token'=> $token, 'id' => $eventId]);
+
+    return $token;
+}
+/**
+ * Lädt die Übersichtsdaten eines Events anhand seines öffentlichen Freigabe-Tokens.
+ * Gibt null zurück, wenn kein Event mit diesem Token existiert (kein Login nötig).
+ */
+function loadEventByShareToken(PDO $pdo, string $token): ?array
+{
+    $stmt = $pdo->prepare('SELECT * FROM events WHERE share_token = :token');
+    $stmt->execute(['token' => $token]);
+    $event = $stmt->fetch();
+
+    if (!$event) {
+        return null;
+    }
+
+    return loadEventData($pdo, (int) $event['id']);
 }

@@ -125,12 +125,14 @@ require_once __DIR__ . '/../../backend/controllers/EventsController.php';
             <h2 style="font-size:1.4rem;">Alle meine Events</h2>
         </section>
 
-        <form method="post" action="<?= url('/events/') ?>" class="auth-form" style="max-width:400px; margin:0 auto 40px;">
+        <form method="post" action="<?= url('/events/') ?>" class="auth-form"
+            style="max-width:400px; margin:0 auto 40px;">
             <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
             <input type="hidden" name="action" value="create">
 
             <label for="event_name">Neues Event:</label>
-            <input type="text" id="event_name" name="event_name" placeholder="z.B. Geburtstag Lisa">
+            <input type="text" id="event_name" name="event_name" placeholder="z.B. Geburtstag Lisa" maxlength="150"
+                required>
 
             <button type="submit" class="save-btn">➕ Event anlegen</button>
         </form>
@@ -171,41 +173,41 @@ require_once __DIR__ . '/../../backend/controllers/EventsController.php';
 
     <script src="<?= url('/js/theme-toggle.js') ?>"></script>
     <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const toggle = document.getElementById('profile-edit-toggle');
+        document.addEventListener('DOMContentLoaded', () => {
+            const toggle = document.getElementById('profile-edit-toggle');
             const modal = document.getElementById('profile-modal');
             const close = document.getElementById('profile-modal-close');
             const cancel = document.getElementById('profile-modal-cancel');
             const backdrop = document.getElementById('profile-modal-backdrop');
 
             if (!toggle || !modal) {
-            return;
-        }
+                return;
+            }
 
             function openModal() {
                 modal.classList.add('open');
-            modal.setAttribute('aria-hidden', 'false');
-            document.body.classList.add('modal-open');
-        }
+                modal.setAttribute('aria-hidden', 'false');
+                document.body.classList.add('modal-open');
+            }
 
             function closeModal() {
                 modal.classList.remove('open');
-            modal.setAttribute('aria-hidden', 'true');
-            document.body.classList.remove('modal-open');
-        }
+                modal.setAttribute('aria-hidden', 'true');
+                document.body.classList.remove('modal-open');
+            }
 
             toggle.addEventListener('click', openModal);
             close?.addEventListener('click', closeModal);
             cancel?.addEventListener('click', closeModal);
             backdrop?.addEventListener('click', closeModal);
 
-        // Modal mit Escape schließen
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape' && modal.classList.contains('open')) {
-                closeModal();
-            }
+            // Modal mit Escape schließen
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape' && modal.classList.contains('open')) {
+                    closeModal();
+                }
+            });
         });
-    });
     </script>
 </body>
 

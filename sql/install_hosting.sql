@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 CREATE TABLE IF NOT EXISTS events (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    share_token VARCHAR(64) NULL UNIQUE,
     name VARCHAR(255) NOT NULL DEFAULT 'Mein Event',
     session_id VARCHAR(64) NULL,
     user_id INT NOT NULL,

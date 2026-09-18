@@ -27,8 +27,8 @@ require_once __DIR__ . '/../../backend/controllers/MenueController.php';
 
         <form method="post" action="<?= url('/menue/') ?>">
             <label for="menue-input">Menü:</label>
-            <input type="text" id="menue-input" class="menu-input" name="menue"
-                value="<?= htmlspecialchars($menue) ?>" placeholder="z.B. Menü 3">
+            <input type="text" id="menue-input" class="menu-input" name="menue" value="<?= htmlspecialchars($menue ?? '')?>"
+                placeholder="z.B. Menü 3" maxlength="500">
 
             <div style="text-align:center; margin-top:30px;">
                 <button type="submit" class="save-btn">Speichern</button>

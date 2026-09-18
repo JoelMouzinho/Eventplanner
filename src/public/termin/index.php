@@ -30,7 +30,7 @@ require_once __DIR__ . '/../../backend/controllers/TerminController.php';
                 <div class="form-group">
                     <label for="date">Datum:</label>
                     <input type="date" id="date" class="date-input" name="date"
-                        value="<?= htmlspecialchars($data['termin_date']) ?>">
+                        value="<?= htmlspecialchars($data['termin_date']) ?>" min="<?= date('Y-m-d') ?>">
                 </div>
 
                 <div class="form-group">
@@ -47,7 +47,8 @@ require_once __DIR__ . '/../../backend/controllers/TerminController.php';
             </div>
 
             <label for="notes">Notizen:</label>
-            <textarea id="notes" class="note-input" name="notes" rows="4"><?= htmlspecialchars($data['termin_notes']) ?></textarea>
+            <textarea id="notes" class="note-input" name="notes"
+                rows="4"><?= htmlspecialchars($data['termin_notes'] ?? '') ?></textarea>
 
             <div style="text-align:center; margin-top:30px;">
                 <button type="submit" class="save-btn">Speichern</button>
@@ -59,6 +60,16 @@ require_once __DIR__ . '/../../backend/controllers/TerminController.php';
     <?php include __DIR__ . '/../layout/footer.php'; ?>
 
     <script src="<?= url('/js/theme-toggle.js') ?>"></script>
+    <script>
+        document.querySelector('form').addEventListener('submit', function (e) {
+            const time = document.getElementById('time').value;
+            const endTime = document.getElementById('endTime').value;
+            if (time && endTime && endTime <= time) {
+                e.preventDefault();
+                alert('Die Endzeit muss nach der Startzeit liegen.');
+            }
+        });
+    </script>
 </body>
 
 </html>
