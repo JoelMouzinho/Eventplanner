@@ -1,0 +1,22 @@
+<?php
+/** Clean URL -> View (relativ zu src/) -> zustaendiger Controller. */
+return [
+    '/'                        => ['view' => 'public/landing.php',                'controller' => 'HomeLandingController'],
+    '/login/'                  => ['view' => 'public/login/index.php',            'controller' => 'LoginController'],
+    '/register/'               => ['view' => 'public/register/index.php',         'controller' => 'RegisterController'],
+    '/logout/'                 => ['view' => 'public/logout/index.php',           'controller' => 'LogoutController'],
+    '/events/'                 => ['view' => 'public/events/index.php',           'controller' => 'EventsController'],
+    '/events/quick-create'     => ['view' => 'public/events/quick-create.php',    'controller' => 'QuickCreateController'],
+    '/home/'                   => ['view' => 'public/home/index.php',             'controller' => 'HomeController'],
+    '/ort/'                    => ['view' => 'public/ort/index.php',              'controller' => 'OrtController'],
+    '/unterhaltung/'           => ['view' => 'public/unterhaltung/index.php',     'controller' => 'UnterhaltungController'],
+    '/mobilliar/'              => ['view' => 'public/mobilliar/index.php',        'controller' => 'MobilliarController'],
+    '/menue/'                  => ['view' => 'public/menue/index.php',            'controller' => 'MenueController'],
+    '/energieversorgung/'      => ['view' => 'public/energieversorgung/index.php','controller' => 'EnergieversorgungController'],
+    '/termin/'                 => ['view' => 'public/termin/index.php',           'controller' => 'TerminController'],
+    '/uebersicht/'             => ['view' => 'public/uebersicht/index.php',       'controller' => 'UebersichtController'],
+    '/admin/'                  => ['view' => 'public/admin/index.php',            'controller' => 'AdminIndexController'],
+    '/admin/events.php'        => ['view' => 'public/admin/events.php',           'controller' => 'AdminEventsController'],
+    '/admin/users.php'         => ['view' => 'public/admin/users.php',            'controller' => 'AdminUsersController'],
+    '/admin/event-detail.php'  => ['view' => 'public/admin/event-detail.php',     'controller' => 'AdminEventDetailController'],
+];

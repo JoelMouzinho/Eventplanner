@@ -1,0 +1,32 @@
+# ============================================
+# .htaccess - Projekt-Wurzel
+# --------------------------------------------
+# Wird nur gebraucht, wenn das Document-Root der Domain NICHT direkt
+# auf src/public zeigen kann (Variante B in DEPLOY.md).
+# Dann in src/backend/config/env.php zusaetzlich  'base_path' => ''  setzen.
+#
+# Zeigt das Document-Root direkt auf src/public (empfohlen), ist diese
+# Datei gar nicht erreichbar und stoert auch nicht.
+# ============================================
+
+Options -Indexes
+
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Backend-Code, SQL-Dumps und Node-Kram nie direkt ausliefern
+    RewriteRule ^(src/backend|sql|node_modules)(/|$) - [F,L]
+
+    # HTTPS erzwingen
+    RewriteCond %{HTTPS} !=on
+    RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+
+    # Alles intern nach src/public schieben, die URL bleibt sauber
+    RewriteCond %{REQUEST_URI} !^/src/public/
+    RewriteRule ^(.*)$ src/public/$1 [L]
+</IfModule>

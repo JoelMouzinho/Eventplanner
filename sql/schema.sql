@@ -1,0 +1,35 @@
+-- ============================================
+-- MyFoods-Eventplaner - Datenbankschema
+-- ============================================
+CREATE DATABASE IF NOT EXISTS eventplaner CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
+USE eventplaner;
+-- Benutzer zuerst anlegen, da events.user_id darauf verweist.
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    first_name VARCHAR(100) NOT NULL DEFAULT '',
+    last_name VARCHAR(100) NOT NULL DEFAULT '',
+    password_hash VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS events (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL DEFAULT 'Mein Event',
+    session_id VARCHAR(64) NULL,
+    user_id INT NOT NULL,
+    ort VARCHAR(32) DEFAULT NULL,
+    unterhaltung JSON DEFAULT NULL,
+    mobilliar JSON DEFAULT NULL,
+    menue VARCHAR(255) DEFAULT NULL,
+    energie JSON DEFAULT NULL,
+    termin_date DATE DEFAULT NULL,
+    termin_time TIME DEFAULT NULL,
+    termin_endtime TIME DEFAULT NULL,
+    termin_notes TEXT DEFAULT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    rejected_at TIMESTAMP NULL DEFAULT NULL,
+    rejection_reason TEXT NULL DEFAULT NULL,
+    INDEX idx_events_user_id (user_id),
+    CONSTRAINT fk_events_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE ON UPDATE CASCADE
+);
