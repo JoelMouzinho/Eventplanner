@@ -1616,6 +1616,97 @@ body.modal-open {
 
 
 /* ============================================
+   Erweitertes Profil: mehrere Abschnitte im Modal
+   ============================================ */
+
+.profile-modal-content--wide {
+    max-width: 480px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+.profile-section-title {
+    margin: 4px 0 2px;
+
+    color: var(--text);
+
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    opacity: 0.75;
+}
+
+.profile-section-title--danger {
+    color: #e5484d;
+    opacity: 1;
+}
+
+.profile-section-divider {
+    margin: 22px 0 14px;
+    border-top: 1px solid var(--border);
+}
+
+.profile-checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+
+    margin-top: 10px;
+
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 600;
+
+    cursor: pointer;
+}
+
+.profile-checkbox-label input {
+    width: auto;
+    margin-top: 2px;
+}
+
+.profile-danger-zone {
+    padding: 14px;
+
+    border: 1px solid rgba(229, 72, 77, 0.35);
+    border-radius: 10px;
+
+    background: rgba(229, 72, 77, 0.06);
+}
+
+.profile-danger-btn {
+    padding: 10px 18px;
+
+    border: 1px solid #e5484d;
+    border-radius: 9px;
+
+    background-color: #e5484d;
+    color: #fff;
+
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        transform 0.15s ease,
+        box-shadow 0.2s ease;
+}
+
+.profile-danger-btn:hover {
+    background-color: #c9302f;
+    border-color: #c9302f;
+    box-shadow: 0 4px 12px rgba(229, 72, 77, 0.3);
+}
+
+.profile-danger-btn:active {
+    transform: scale(0.97);
+}
+
+/* ============================================
    Mobile
    ============================================ */
 

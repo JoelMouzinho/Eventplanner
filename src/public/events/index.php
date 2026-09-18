@@ -73,14 +73,25 @@ require_once __DIR__ . '/../../backend/controllers/EventsController.php';
                         <?= htmlspecialchars($account['email']) ?>
                     </p>
 
+                    <?php if (!empty($account['phone'])): ?>
+                        <p class="overview-empty">
+                            📞 <?= htmlspecialchars($account['phone']) ?>
+                        </p>
+                    <?php endif; ?>
+
+                    <p class="overview-empty" style="font-size:12px;">
+                        Mitglied seit <?= htmlspecialchars(substr($account['created_at'] ?? '', 0, 10)) ?>
+                    </p>
+
                     <button type="button" class="profile-edit-btn" id="profile-edit-toggle">
                         Profil bearbeiten
                     </button>
 
-                    <div class="profile-modal" id="profile-modal" aria-hidden="true">
+                    <div class="profile-modal<?= $profileModalShouldOpen ? ' open' : '' ?>" id="profile-modal"
+                        aria-hidden="<?= $profileModalShouldOpen ? 'false' : 'true' ?>">
                         <div class="profile-modal-backdrop" id="profile-modal-backdrop"></div>
 
-                        <div class="profile-modal-content" role="dialog" aria-modal="true"
+                        <div class="profile-modal-content profile-modal-content--wide" role="dialog" aria-modal="true"
                             aria-labelledby="profile-modal-title">
                             <button type="button" class="profile-modal-close" id="profile-modal-close"
                                 aria-label="Modal schließen">
@@ -89,8 +100,20 @@ require_once __DIR__ . '/../../backend/controllers/EventsController.php';
 
                             <h2 id="profile-modal-title">Profil bearbeiten</h2>
                             <p class="profile-modal-subtitle">
-                                Aktualisiere deinen Vor- und Nachnamen.
+                                Verwalte deine persönlichen Daten und dein Konto.
                             </p>
+
+                            <?php if (isset($updatedMessages[$updatedNotice])): ?>
+                                <p class="success" style="margin:0 0 15px;">
+                                    ✅ <?= htmlspecialchars($updatedMessages[$updatedNotice]) ?>
+                                </p>
+                            <?php endif; ?>
+
+                            <div class="profile-section-title">Persönliche Daten</div>
+
+                            <?php if ($profileError !== ''): ?>
+                                <div class="error-message"><?= htmlspecialchars($profileError) ?></div>
+                            <?php endif; ?>
 
                             <form method="post" action="<?= url('/events/') ?>" class="profile-form">
                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
@@ -106,16 +129,111 @@ require_once __DIR__ . '/../../backend/controllers/EventsController.php';
                                     value="<?= htmlspecialchars($account['last_name'] ?? '') ?>" placeholder="Nachname"
                                     maxlength="100">
 
-                                <div class="profile-form-actions">
-                                    <button type="button" class="profile-cancel-btn" id="profile-modal-cancel">
-                                        Abbrechen
-                                    </button>
+                                <label for="phone">Telefonnummer</label>
+                                <input type="tel" id="phone" name="phone"
+                                    value="<?= htmlspecialchars($account['phone'] ?? '') ?>" placeholder="z.B. 079 123 45 67"
+                                    maxlength="30">
 
+                                <div class="profile-form-actions">
                                     <button type="submit" class="save-btn">
                                         Speichern
                                     </button>
                                 </div>
                             </form>
+
+                            <div class="profile-section-divider"></div>
+                            <div class="profile-section-title">Passwort ändern</div>
+
+                            <?php if ($passwordError !== ''): ?>
+                                <div class="error-message"><?= htmlspecialchars($passwordError) ?></div>
+                            <?php endif; ?>
+
+                            <form method="post" action="<?= url('/events/') ?>" class="profile-form">
+                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
+                                <input type="hidden" name="action" value="change_password">
+
+                                <label for="current_password">Aktuelles Passwort</label>
+                                <input type="password" id="current_password" name="current_password"
+                                    autocomplete="current-password">
+
+                                <label for="new_password">Neues Passwort</label>
+                                <input type="password" id="new_password" name="new_password" minlength="8"
+                                    autocomplete="new-password">
+
+                                <label for="new_password_confirm">Neues Passwort wiederholen</label>
+                                <input type="password" id="new_password_confirm" name="new_password_confirm"
+                                    minlength="8" autocomplete="new-password">
+
+                                <div class="profile-form-actions">
+                                    <button type="submit" class="save-btn">
+                                        Passwort ändern
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="profile-section-divider"></div>
+                            <div class="profile-section-title">E-Mail-Adresse ändern</div>
+
+                            <?php if ($emailError !== ''): ?>
+                                <div class="error-message"><?= htmlspecialchars($emailError) ?></div>
+                            <?php endif; ?>
+
+                            <form method="post" action="<?= url('/events/') ?>" class="profile-form">
+                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
+                                <input type="hidden" name="action" value="change_email">
+
+                                <label for="new_email">Neue E-Mail-Adresse</label>
+                                <input type="email" id="new_email" name="new_email"
+                                    value="<?= htmlspecialchars($account['email']) ?>" autocomplete="email">
+
+                                <label for="current_password_email">Aktuelles Passwort zur Bestätigung</label>
+                                <input type="password" id="current_password_email" name="current_password_email"
+                                    autocomplete="current-password">
+
+                                <div class="profile-form-actions">
+                                    <button type="submit" class="save-btn">
+                                        E-Mail ändern
+                                    </button>
+                                </div>
+                            </form>
+
+                            <div class="profile-section-divider"></div>
+                            <div class="profile-danger-zone">
+                                <div class="profile-section-title profile-section-title--danger">Konto löschen</div>
+                                <p class="profile-modal-subtitle" style="margin-bottom:12px;">
+                                    Löscht dein Konto und alle deine Events unwiderruflich. Das kann nicht rückgängig
+                                    gemacht werden.
+                                </p>
+
+                                <?php if ($deleteError !== ''): ?>
+                                    <div class="error-message"><?= htmlspecialchars($deleteError) ?></div>
+                                <?php endif; ?>
+
+                                <form method="post" action="<?= url('/events/') ?>" class="profile-form"
+                                    onsubmit="return confirm('Dein Konto und alle Events werden endgültig gelöscht. Fortfahren?');">
+                                    <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
+                                    <input type="hidden" name="action" value="delete_account">
+
+                                    <label for="current_password_delete">Aktuelles Passwort zur Bestätigung</label>
+                                    <input type="password" id="current_password_delete" name="current_password_delete"
+                                        autocomplete="current-password">
+
+                                    <label class="profile-checkbox-label">
+                                        <input type="checkbox" name="confirm_delete" value="1">
+                                        Ich möchte mein Konto und alle meine Events endgültig löschen.
+                                    </label>
+
+                                    <div class="profile-form-actions">
+                                        <button type="button" class="profile-cancel-btn" id="profile-modal-cancel">
+                                            Abbrechen
+                                        </button>
+
+                                        <button type="submit" class="profile-danger-btn">
+                                            Konto endgültig löschen
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 <?php endif; ?>

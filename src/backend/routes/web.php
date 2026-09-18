@@ -16,6 +16,8 @@ return [
     '/termin/'                 => ['view' => 'public/termin/index.php',           'controller' => 'TerminController'],
     '/uebersicht/'             => ['view' => 'public/uebersicht/index.php',       'controller' => 'UebersichtController'],
     '/teilen/'                 => ['view' => 'public/teilen/index.php',           'controller' => 'ShareController'],
+    '/impressum/'               => ['view' => 'public/impressum/index.php',        'controller' => 'ImpressumController'],
+    '/datenschutz/'             => ['view' => 'public/datenschutz/index.php',      'controller' => 'DatenschutzController'],
     '/admin/'                  => ['view' => 'public/admin/index.php',            'controller' => 'AdminIndexController'],
     '/admin/events.php'        => ['view' => 'public/admin/events.php',           'controller' => 'AdminEventsController'],
     '/admin/users.php'         => ['view' => 'public/admin/users.php',            'controller' => 'AdminUsersController'],
