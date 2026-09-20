@@ -1,4 +1,6 @@
-
+<?php
+require_once __DIR__ . '/../../backend/controllers/ImpressumController.php';
+?>
 <!DOCTYPE html>
 <html lang="de">
 
@@ -13,6 +15,8 @@
 
 <body>
 
+    <?php include __DIR__ . '/../layout/legal-header.php'; ?>
+
     <main>
         <section class="legal-page">
 
@@ -20,6 +24,10 @@
 
             <p class="legal-intro">
                 Angaben zum Betreiber von ITKFA Party-Organizer.
+            </p>
+
+            <p>
+                <a href="<?= isLoggedIn() ? url('/home/') : url('/') ?>" class="back-link">← Zurück</a>
             </p>
 
             <section class="legal-section">
@@ -98,6 +106,8 @@
 
         </section>
     </main>
+
+    <?php include __DIR__ . '/../layout/footer.php'; ?>
 
     <script src="<?= url('/js/theme-toggle.js') ?>"></script>
 
