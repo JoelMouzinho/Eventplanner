@@ -18,31 +18,93 @@ function createEvent(PDO $pdo, int $userId, string $name): int
 }
 
 /**
- * Kontoinfos des Nutzers (E-Mail, Mitglied seit) fürs Dashboard.
+ * Kontoinfos des Nutzers (E-Mail, Telefon, Mitglied seit) fürs Dashboard.
  */
 function getUserAccountInfo(PDO $pdo, int $userId): ?array
 {
-    $stmt = $pdo->prepare('SELECT email, first_name, last_name, created_at FROM users WHERE id = :id');
+    $stmt = $pdo->prepare('SELECT email, first_name, last_name, phone, created_at FROM users WHERE id = :id');
     $stmt->execute(['id' => $userId]);
     $row = $stmt->fetch();
 
     return $row ?: null;
 }
 
-function updateUserProfile(PDO $pdo, int $userId, string $firstName, string $lastName): void
+function updateUserProfile(PDO $pdo, int $userId, string $firstName, string $lastName, string $phone): void
 {
     $stmt = $pdo->prepare(
         'UPDATE users
         SET first_name = :first_name,
-            last_name = :last_name
+            last_name = :last_name,
+            phone = :phone
         WHERE id = :id'
     );
+
+    $phone = trim($phone);
 
     $stmt->execute([
         'first_name' => trim($firstName),
         'last_name' => trim($lastName),
+        'phone' => $phone !== '' ? $phone : null,
         'id' => $userId,
     ]);
+}
+
+/**
+ * Prüft, ob das angegebene Passwort zum aktuellen Passwort-Hash des Nutzers passt.
+ * Wird für alle sicherheitsrelevanten Profil-Änderungen (Passwort, E-Mail, Konto
+ * löschen) als Bestätigung verlangt.
+ */
+function verifyUserPassword(PDO $pdo, int $userId, string $password): bool
+{
+    $stmt = $pdo->prepare('SELECT password_hash FROM users WHERE id = :id');
+    $stmt->execute(['id' => $userId]);
+    $row = $stmt->fetch();
+
+    return $row && password_verify($password, $row['password_hash']);
+}
+
+/**
+ * Setzt ein neues Passwort für den Nutzer.
+ */
+function updateUserPassword(PDO $pdo, int $userId, string $newPassword): void
+{
+    $stmt = $pdo->prepare('UPDATE users SET password_hash = :hash WHERE id = :id');
+    $stmt->execute([
+        'hash' => password_hash($newPassword, PASSWORD_DEFAULT),
+        'id' => $userId,
+    ]);
+}
+
+/**
+ * Prüft, ob eine E-Mail-Adresse bereits einem ANDEREN Nutzer gehört
+ * (für die Eindeutigkeits-Prüfung beim Ändern der eigenen E-Mail-Adresse).
+ */
+function emailExistsForOtherUser(PDO $pdo, string $email, int $excludeUserId): bool
+{
+    $stmt = $pdo->prepare('SELECT id FROM users WHERE email = :email AND id != :id LIMIT 1');
+    $stmt->execute(['email' => $email, 'id' => $excludeUserId]);
+
+    return (bool) $stmt->fetch();
+}
+
+/**
+ * Ändert die E-Mail-Adresse des Nutzers.
+ */
+function updateUserEmail(PDO $pdo, int $userId, string $newEmail): void
+{
+    $stmt = $pdo->prepare('UPDATE users SET email = :email WHERE id = :id');
+    $stmt->execute(['email' => $newEmail, 'id' => $userId]);
+}
+
+/**
+ * Löscht das eigene Konto des Nutzers (Selbstbedienung, nicht die
+ * Admin-Funktion deleteUserAsAdmin). Events werden per ON DELETE CASCADE
+ * automatisch mitgelöscht.
+ */
+function deleteOwnAccount(PDO $pdo, int $userId): void
+{
+    $stmt = $pdo->prepare('DELETE FROM users WHERE id = :id');
+    $stmt->execute(['id' => $userId]);
 }
 
 /**
@@ -133,6 +195,7 @@ function getCurrentEventId(PDO $pdo, int $userId): int
     }
 
     redirect('/events/');
+    return 0;
 }
 
 /**
@@ -346,4 +409,41 @@ function deleteEventAsAdmin(PDO $pdo, int $eventId): void
 {
     $stmt = $pdo->prepare('DELETE FROM events WHERE id = :id');
     $stmt->execute(['id' => $eventId]);
+}
+/**
+ * Gibt den Freigabe-Token für ein Event zurück und erzeugt bei Bedarf einen neuen.
+ */
+function ensureShareToken(PDO $pdo, int $eventId): string
+{
+    $stmt = $pdo->prepare('SELECT share_token FROM events WHERE id = :id');
+    $stmt->execute(['id' => $eventId]);
+    $token = $stmt->fetchColumn();
+
+    if ($token) {
+        return $token;
+    }
+
+    // Token generieren und speichern
+    $token = bin2hex(random_bytes(16));
+
+    $updateStmt = $pdo->prepare('UPDATE events SET share_token = :token WHERE id = :id');
+    $updateStmt->execute(['token'=> $token, 'id' => $eventId]);
+
+    return $token;
+}
+/**
+ * Lädt die Übersichtsdaten eines Events anhand seines öffentlichen Freigabe-Tokens.
+ * Gibt null zurück, wenn kein Event mit diesem Token existiert (kein Login nötig).
+ */
+function loadEventByShareToken(PDO $pdo, string $token): ?array
+{
+    $stmt = $pdo->prepare('SELECT * FROM events WHERE share_token = :token');
+    $stmt->execute(['token' => $token]);
+    $event = $stmt->fetch();
+
+    if (!$event) {
+        return null;
+    }
+
+    return loadEventData($pdo, (int) $event['id']);
 }

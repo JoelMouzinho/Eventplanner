@@ -1,15 +1,13 @@
 <?php
-require_once __DIR__ . '/../middleware/auth.php';
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/../services/EventService.php';
 
-requireLogin();
+$token = trim($_GET['token'] ?? '');
+$data = $token !== '' ? loadEventByShareToken($pdo, $token) : null;
 
-$userId = currentUserId();
-$eventId = getCurrentEventId($pdo, $userId);
-$data = loadEventData($pdo, $eventId);
-$shareToken = ensureShareToken($pdo, $eventId);
-$shareUrl = (!empty($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . url('/teilen/') . '?token=' . $shareToken;
+if ($data === null) {
+    http_response_code(404);
+}
 
 $ortLabels = [
     'zuhause' => '🏠 Zuhause',
@@ -41,4 +39,3 @@ $energieLabels = [
     'notstrom' => '🆘 Notstrom',
     'technik' => '🎚️ Technik-Anschlüsse',
 ];
-?>
