@@ -38,17 +38,15 @@ require_once __DIR__ . '/../../backend/controllers/DatenschutzController.php';
                 </p>
 
                 <p>
-                    <strong>Vorname Nachname</strong><br>
-                    ITKFA Party-Organizer<br>
-                    Strasse Hausnummer<br>
-                    PLZ Ort<br>
-                    Schweiz
+                    <strong>IT Knowledge Factory</strong><br>
+                    Zieglerstrasse 64<br>
+                    CH-3007 Bern
                 </p>
 
                 <p>
                     E-Mail:
-                    <a href="mailto:DEINE-EMAIL@BEISPIEL.CH">
-                        DEINE-EMAIL@BEISPIEL.CH
+                    <a href="mailto:contact@it-knowledge-factory.ch">
+                        contact@it-knowledge-factory.ch
                     </a>
                 </p>
             </section>

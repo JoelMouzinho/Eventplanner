@@ -34,11 +34,9 @@ require_once __DIR__ . '/../../backend/controllers/ImpressumController.php';
                 <h2>Betreiber</h2>
 
                 <p>
-                    <strong>ITKFA Party-Organizer</strong><br>
-                    Vorname Nachname<br>
-                    Strasse Hausnummer<br>
-                    PLZ Ort<br>
-                    Schweiz
+                    <strong>IT Knowledge Factory</strong><br>
+                    Zieglerstrasse 64<br>
+                    CH-3007 Bern
                 </p>
             </section>
 
@@ -47,13 +45,13 @@ require_once __DIR__ . '/../../backend/controllers/ImpressumController.php';
 
                 <p>
                     E-Mail:
-                    <a href="mailto:DEINE-EMAIL@BEISPIEL.CH">
-                        DEINE-EMAIL@BEISPIEL.CH
+                    <a href="mailto:contact@it-knowledge-factory.ch">
+                        contact@it-knowledge-factory.ch
                     </a>
                 </p>
 
                 <p>
-                    Telefon: DEINE TELEFONNUMMER
+                    Telefon: 031 381 26 82
                 </p>
             </section>
 
@@ -61,7 +59,7 @@ require_once __DIR__ . '/../../backend/controllers/ImpressumController.php';
                 <h2>Verantwortlich für den Inhalt</h2>
 
                 <p>
-                    Vorname Nachname<br>
+                    IT Knowledge Factory<br>
                     oben genannte Adresse
                 </p>
             </section>

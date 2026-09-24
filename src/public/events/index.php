@@ -109,67 +109,74 @@ require_once __DIR__ . '/../../backend/controllers/EventsController.php';
                                 </p>
                             <?php endif; ?>
 
-                            <div class="profile-section-title">Persönliche Daten</div>
+                            <div class="profile-two-col">
+                                <div class="profile-col">
+                                    <div class="profile-section-title">Persönliche Daten</div>
 
-                            <?php if ($profileError !== ''): ?>
-                                <div class="error-message"><?= htmlspecialchars($profileError) ?></div>
-                            <?php endif; ?>
+                                    <?php if ($profileError !== ''): ?>
+                                        <div class="error-message"><?= htmlspecialchars($profileError) ?></div>
+                                    <?php endif; ?>
 
-                            <form method="post" action="<?= url('/events/') ?>" class="profile-form">
-                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
-                                <input type="hidden" name="action" value="update_profile">
+                                    <form method="post" action="<?= url('/events/') ?>" class="profile-form">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
+                                        <input type="hidden" name="action" value="update_profile">
 
-                                <label for="first_name">Vorname</label>
-                                <input type="text" id="first_name" name="first_name"
-                                    value="<?= htmlspecialchars($account['first_name'] ?? '') ?>" placeholder="Vorname"
-                                    maxlength="100">
+                                        <label for="first_name">Vorname</label>
+                                        <input type="text" id="first_name" name="first_name"
+                                            value="<?= htmlspecialchars($account['first_name'] ?? '') ?>"
+                                            placeholder="Vorname" maxlength="100">
 
-                                <label for="last_name">Nachname</label>
-                                <input type="text" id="last_name" name="last_name"
-                                    value="<?= htmlspecialchars($account['last_name'] ?? '') ?>" placeholder="Nachname"
-                                    maxlength="100">
+                                        <label for="last_name">Nachname</label>
+                                        <input type="text" id="last_name" name="last_name"
+                                            value="<?= htmlspecialchars($account['last_name'] ?? '') ?>"
+                                            placeholder="Nachname" maxlength="100">
 
-                                <label for="phone">Telefonnummer</label>
-                                <input type="tel" id="phone" name="phone"
-                                    value="<?= htmlspecialchars($account['phone'] ?? '') ?>" placeholder="z.B. 079 123 45 67"
-                                    maxlength="30">
+                                        <label for="phone">Telefonnummer</label>
+                                        <input type="tel" id="phone" name="phone"
+                                            value="<?= htmlspecialchars($account['phone'] ?? '') ?>"
+                                            placeholder="z.B. 079 123 45 67" maxlength="30">
 
-                                <div class="profile-form-actions">
-                                    <button type="submit" class="save-btn">
-                                        Speichern
-                                    </button>
+                                        <div class="profile-form-actions">
+                                            <button type="submit" class="save-btn">
+                                                Speichern
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
-                            </form>
 
-                            <div class="profile-section-divider"></div>
-                            <div class="profile-section-title">Passwort ändern</div>
+                                <div class="profile-col-divider"></div>
 
-                            <?php if ($passwordError !== ''): ?>
-                                <div class="error-message"><?= htmlspecialchars($passwordError) ?></div>
-                            <?php endif; ?>
+                                <div class="profile-col">
+                                    <div class="profile-section-title">Passwort ändern</div>
 
-                            <form method="post" action="<?= url('/events/') ?>" class="profile-form">
-                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
-                                <input type="hidden" name="action" value="change_password">
+                                    <?php if ($passwordError !== ''): ?>
+                                        <div class="error-message"><?= htmlspecialchars($passwordError) ?></div>
+                                    <?php endif; ?>
 
-                                <label for="current_password">Aktuelles Passwort</label>
-                                <input type="password" id="current_password" name="current_password"
-                                    autocomplete="current-password">
+                                    <form method="post" action="<?= url('/events/') ?>" class="profile-form">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
+                                        <input type="hidden" name="action" value="change_password">
 
-                                <label for="new_password">Neues Passwort</label>
-                                <input type="password" id="new_password" name="new_password" minlength="8"
-                                    autocomplete="new-password">
+                                        <label for="current_password">Aktuelles Passwort</label>
+                                        <input type="password" id="current_password" name="current_password"
+                                            autocomplete="current-password">
 
-                                <label for="new_password_confirm">Neues Passwort wiederholen</label>
-                                <input type="password" id="new_password_confirm" name="new_password_confirm"
-                                    minlength="8" autocomplete="new-password">
+                                        <label for="new_password">Neues Passwort</label>
+                                        <input type="password" id="new_password" name="new_password" minlength="8"
+                                            autocomplete="new-password">
 
-                                <div class="profile-form-actions">
-                                    <button type="submit" class="save-btn">
-                                        Passwort ändern
-                                    </button>
+                                        <label for="new_password_confirm">Neues Passwort wiederholen</label>
+                                        <input type="password" id="new_password_confirm" name="new_password_confirm"
+                                            minlength="8" autocomplete="new-password">
+
+                                        <div class="profile-form-actions">
+                                            <button type="submit" class="save-btn">
+                                                Passwort ändern
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
-                            </form>
+                            </div>
 
                             <div class="profile-section-divider"></div>
                             <div class="profile-section-title">E-Mail-Adresse ändern</div>
