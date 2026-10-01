@@ -1,0 +1,53 @@
+name: Deploy to green.ch
+
+# Läuft automatisch bei jedem Push/Merge auf main -> main = das, was live ist
+on:
+  push:
+    branches: [main]
+
+  # Erlaubt auch manuelles Auslösen im "Actions"-Tab von GitHub
+  workflow_dispatch:
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Per FTPS auf green.ch hochladen
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          port: 21
+
+          # Ganzes Repo als Quelle
+          local-dir: ./
+
+          # Ziel: der Domain-Ordner auf dem FTP-Server.
+          # "./" passt, wenn das Home-Verzeichnis des FTP-Users
+          # bereits der Domain-Ordner ist (bei green.ch meist der Fall).
+          server-dir: ./
+
+          # WICHTIG: nie eine "saubere" Neuinstallation erzwingen,
+          # sonst löscht die Action Dateien, die nur auf dem Server liegen
+          # (allen voran env.php, die absichtlich nicht im Git-Repo ist).
+          dangerous-clean-slate: false
+
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            package.json
+            package-lock.json
+            tsconfig.json
+            nodemon.json
+            sql/**
+            src/backend/config/env.php
+            src/backend/config/env.example.php
+            README.md
+            DEPLOY.md
+            FIXES.md
