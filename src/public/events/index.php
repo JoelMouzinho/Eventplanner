@@ -153,13 +153,14 @@ require_once __DIR__ . '/../../backend/controllers/EventsController.php';
                                         <div class="error-message"><?= htmlspecialchars($passwordError) ?></div>
                                     <?php endif; ?>
 
-                                    <form method="post" action="<?= url('/events/') ?>" class="profile-form">
+                                    <form method="post" action="<?= url('/events/') ?>" class="profile-form"
+                                        autocomplete="off">
                                         <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                                         <input type="hidden" name="action" value="change_password">
 
                                         <label for="current_password">Aktuelles Passwort</label>
                                         <input type="password" id="current_password" name="current_password"
-                                            autocomplete="current-password">
+                                            autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
 
                                         <label for="new_password">Neues Passwort</label>
                                         <input type="password" id="new_password" name="new_password" minlength="8"
@@ -185,17 +186,17 @@ require_once __DIR__ . '/../../backend/controllers/EventsController.php';
                                 <div class="error-message"><?= htmlspecialchars($emailError) ?></div>
                             <?php endif; ?>
 
-                            <form method="post" action="<?= url('/events/') ?>" class="profile-form">
+                            <form method="post" action="<?= url('/events/') ?>" class="profile-form" autocomplete="off">
                                 <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                                 <input type="hidden" name="action" value="change_email">
 
                                 <label for="new_email">Neue E-Mail-Adresse</label>
                                 <input type="email" id="new_email" name="new_email"
-                                    value="<?= htmlspecialchars($account['email']) ?>" autocomplete="email">
+                                    value="<?= htmlspecialchars($account['email']) ?>" autocomplete="off">
 
                                 <label for="current_password_email">Aktuelles Passwort zur Bestätigung</label>
                                 <input type="password" id="current_password_email" name="current_password_email"
-                                    autocomplete="current-password">
+                                    autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
 
                                 <div class="profile-form-actions">
                                     <button type="submit" class="save-btn">
@@ -216,14 +217,14 @@ require_once __DIR__ . '/../../backend/controllers/EventsController.php';
                                     <div class="error-message"><?= htmlspecialchars($deleteError) ?></div>
                                 <?php endif; ?>
 
-                                <form method="post" action="<?= url('/events/') ?>" class="profile-form"
+                                <form method="post" action="<?= url('/events/') ?>" class="profile-form" autocomplete="off"
                                     onsubmit="return confirm('Dein Konto und alle Events werden endgültig gelöscht. Fortfahren?');">
                                     <input type="hidden" name="csrf_token" value="<?= htmlspecialchars(csrfToken()) ?>">
                                     <input type="hidden" name="action" value="delete_account">
 
                                     <label for="current_password_delete">Aktuelles Passwort zur Bestätigung</label>
                                     <input type="password" id="current_password_delete" name="current_password_delete"
-                                        autocomplete="current-password">
+                                        autocomplete="off" readonly onfocus="this.removeAttribute('readonly')">
 
                                     <label class="profile-checkbox-label">
                                         <input type="checkbox" name="confirm_delete" value="1">
