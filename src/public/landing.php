@@ -22,7 +22,7 @@ require_once __DIR__ . '/../backend/controllers/HomeLandingController.php';
                 <a class="landing-btn primary" href="<?= url('/login/') ?>">Einloggen</a>
                 <a class="landing-btn secondary" href="<?= url('/register/') ?>">Kostenlos registrieren</a>
             </div>
-            <p class="landing-note">Ein Benutzerkonto ist erforderlich, um den Event-Manager zu nutzen.</p>
+            <p class="landing-note">Ein Benutzerkonto ist erforderlich, um den Party-Organizer zu nutzen.</p>
         </section>
     </main>
     <script src="<?= url('/js/theme-toggle.js') ?>"></script>
