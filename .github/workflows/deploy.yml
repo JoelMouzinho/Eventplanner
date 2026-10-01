@@ -15,39 +15,39 @@ jobs:
       - name: Repository auschecken
         uses: actions/checkout@v4
 
+      - name: lftp installieren
+        run: sudo apt-get update -qq && sudo apt-get install -y lftp
+
       - name: Per FTPS auf green.ch hochladen
-        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
-        with:
-          server: ${{ secrets.FTP_SERVER }}
-          username: ${{ secrets.FTP_USERNAME }}
-          password: ${{ secrets.FTP_PASSWORD }}
-          protocol: ftps
-          port: 21
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          lftp -u "$FTP_USERNAME","$FTP_PASSWORD" -p 21 "$FTP_SERVER" <<'EOF_LFTP'
+          set ftp:ssl-force true
+          set ftp:ssl-protect-data true
+          set net:max-retries 6
+          set net:reconnect-interval-base 5
+          set net:reconnect-interval-multiplier 2
+          set net:timeout 20
+          set mirror:parallel-transfer-count 1
 
-          # Ganzes Repo als Quelle
-          local-dir: ./
+          mirror --reverse --verbose --only-newer \
+            --exclude-glob .git* \
+            --exclude-glob .github/ \
+            --exclude-glob node_modules/ \
+            --exclude package.json \
+            --exclude package-lock.json \
+            --exclude tsconfig.json \
+            --exclude nodemon.json \
+            --exclude-glob sql/ \
+            --exclude src/backend/config/env.php \
+            --exclude src/backend/config/env.example.php \
+            --exclude README.md \
+            --exclude DEPLOY.md \
+            --exclude FIXES.md \
+            ./ ./
 
-          # Ziel: der Domain-Ordner auf dem FTP-Server.
-          # "./" passt, wenn das Home-Verzeichnis des FTP-Users
-          # bereits der Domain-Ordner ist (bei green.ch meist der Fall).
-          server-dir: ./
-
-          # WICHTIG: nie eine "saubere" Neuinstallation erzwingen,
-          # sonst löscht die Action Dateien, die nur auf dem Server liegen
-          # (allen voran env.php, die absichtlich nicht im Git-Repo ist).
-          dangerous-clean-slate: false
-
-          exclude: |
-            **/.git*
-            **/.git*/**
-            **/node_modules/**
-            package.json
-            package-lock.json
-            tsconfig.json
-            nodemon.json
-            sql/**
-            src/backend/config/env.php
-            src/backend/config/env.example.php
-            README.md
-            DEPLOY.md
-            FIXES.md
+          bye
+          EOF_LFTP
