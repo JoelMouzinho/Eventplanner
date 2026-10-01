@@ -80,6 +80,25 @@ require_once __DIR__ . '/../../backend/controllers/UebersichtController.php';
                 <?php endif; ?>
             </div>
 
+            <div class="overview-card">
+                <h3>💰 Budget</h3>
+                <p>Geplant: CHF <?= number_format($budgetTotals['planned'], 2, '.', "'") ?></p>
+                <p>Tatsächlich: CHF <?= number_format($budgetTotals['actual'], 2, '.', "'") ?></p>
+
+                <?php if ($budgetLimit !== null): ?>
+                    <?php if ($budgetTotals['actual'] > $budgetLimit): ?>
+                        <p class="budget-over" style="font-weight:bold;">
+                            ⚠️ Limit (CHF <?= number_format($budgetLimit, 2, '.', "'") ?>) überschritten
+                        </p>
+                    <?php else: ?>
+                        <p class="overview-empty">Limit: CHF <?= number_format($budgetLimit, 2, '.', "'") ?></p>
+                    <?php endif; ?>
+                <?php endif; ?>
+
+                <a href="<?= url('/budget/') ?>" class="overview-empty" style="text-decoration:underline;">Details
+                    →</a>
+            </div>
+
             <div class="overview-card overview-termin">
                 <h3>📅 Termin</h3>
                 <?php if ($data['termin_date'] && $data['termin_time']): ?>

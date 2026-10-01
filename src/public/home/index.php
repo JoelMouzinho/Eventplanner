@@ -54,6 +54,10 @@ require_once __DIR__ . '/../../backend/controllers/HomeController.php';
                 <h3>Termin</h3>
                 <p>Finde den perfekten Termin für dein Event.</p>
             </a>
+            <a href="<?= url('/budget/') ?>" class="feature">
+                <h3>Budget</h3>
+                <p>Behalte deine geplanten und tatsächlichen Kosten im Blick.</p>
+            </a>
             <a href="<?= url('/uebersicht/') ?>" class="feature">
                 <h3>Übersicht</h3>
                 <p>Behalte alle Informationen auf einen Blick.</p>

@@ -14,6 +14,7 @@ return [
     '/menue/'                  => ['view' => 'public/menue/index.php',            'controller' => 'MenueController'],
     '/energieversorgung/'      => ['view' => 'public/energieversorgung/index.php','controller' => 'EnergieversorgungController'],
     '/termin/'                 => ['view' => 'public/termin/index.php',           'controller' => 'TerminController'],
+    '/budget/'                 => ['view' => 'public/budget/index.php',           'controller' => 'BudgetController'],
     '/uebersicht/'             => ['view' => 'public/uebersicht/index.php',       'controller' => 'UebersichtController'],
     '/teilen/'                 => ['view' => 'public/teilen/index.php',           'controller' => 'ShareController'],
     '/impressum/'               => ['view' => 'public/impressum/index.php',        'controller' => 'ImpressumController'],

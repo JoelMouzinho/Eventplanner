@@ -266,6 +266,103 @@ function saveEventData(PDO $pdo, int $eventId, array $fields): void
 }
 
 // ============================================
+// Budget-Tracker
+// ============================================
+
+/**
+ * Feste Kategorien für Budget-Posten (Auswahl im Formular, Beschriftung in Tabellen).
+ */
+function budgetCategoryLabels(): array
+{
+    return [
+        'ort' => '📍 Ort',
+        'unterhaltung' => '🎉 Unterhaltung',
+        'mobilliar' => '🪑 Mobiliar',
+        'menue' => '📄 Menü',
+        'energie' => '⚡ Energieversorgung',
+        'sonstiges' => '📦 Sonstiges',
+    ];
+}
+
+/**
+ * Setzt oder entfernt das Budget-Limit eines Events (null = kein Limit gesetzt).
+ */
+function updateEventBudgetLimit(PDO $pdo, int $eventId, ?float $limit): void
+{
+    $stmt = $pdo->prepare('UPDATE events SET budget_limit = :limit WHERE id = :id');
+    $stmt->execute(['limit' => $limit, 'id' => $eventId]);
+}
+
+/**
+ * Alle Budget-Posten eines Events, in Erfassungsreihenfolge.
+ */
+function getBudgetItems(PDO $pdo, int $eventId): array
+{
+    $stmt = $pdo->prepare('SELECT * FROM budget_items WHERE event_id = :event_id ORDER BY created_at ASC, id ASC');
+    $stmt->execute(['event_id' => $eventId]);
+    return $stmt->fetchAll();
+}
+
+/**
+ * Legt einen neuen Budget-Posten für ein Event an.
+ */
+function addBudgetItem(PDO $pdo, int $eventId, string $category, string $label, float $plannedAmount, float $actualAmount): void
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO budget_items (event_id, category, label, planned_amount, actual_amount)
+         VALUES (:event_id, :category, :label, :planned_amount, :actual_amount)'
+    );
+    $stmt->execute([
+        'event_id' => $eventId,
+        'category' => $category,
+        'label' => $label,
+        'planned_amount' => $plannedAmount,
+        'actual_amount' => $actualAmount,
+    ]);
+}
+
+/**
+ * Löscht einen Budget-Posten (nur wenn er zum angegebenen Event gehört).
+ */
+function deleteBudgetItem(PDO $pdo, int $eventId, int $itemId): void
+{
+    $stmt = $pdo->prepare('DELETE FROM budget_items WHERE id = :id AND event_id = :event_id');
+    $stmt->execute(['id' => $itemId, 'event_id' => $eventId]);
+}
+
+/**
+ * Summiert geplante und tatsächliche Kosten eines Events, gesamt und je Kategorie.
+ */
+function getBudgetTotals(PDO $pdo, int $eventId): array
+{
+    $items = getBudgetItems($pdo, $eventId);
+
+    $totals = [
+        'planned' => 0.0,
+        'actual' => 0.0,
+        'byCategory' => [],
+    ];
+
+    foreach ($items as $item) {
+        $category = $item['category'];
+        $planned = (float) $item['planned_amount'];
+        $actual = (float) $item['actual_amount'];
+
+        $totals['planned'] += $planned;
+        $totals['actual'] += $actual;
+
+        if (!isset($totals['byCategory'][$category])) {
+            $totals['byCategory'][$category] = ['planned' => 0.0, 'actual' => 0.0];
+        }
+
+        $totals['byCategory'][$category]['planned'] += $planned;
+        $totals['byCategory'][$category]['actual'] += $actual;
+    }
+
+    return $totals;
+}
+
+// ============================================
 // Admin-Funktionen
 // ============================================
 
@@ -427,7 +524,7 @@ function ensureShareToken(PDO $pdo, int $eventId): string
     $token = bin2hex(random_bytes(16));
 
     $updateStmt = $pdo->prepare('UPDATE events SET share_token = :token WHERE id = :id');
-    $updateStmt->execute(['token'=> $token, 'id' => $eventId]);
+    $updateStmt->execute(['token' => $token, 'id' => $eventId]);
 
     return $token;
 }
