@@ -16,6 +16,7 @@
                     <li><a href="<?= url('/menue/') ?>">Menü</a></li>
                     <li><a href="<?= url('/energieversorgung/') ?>">Energieversorgung</a></li>
                     <li><a href="<?= url('/termin/') ?>">Termin</a></li>
+                    <li><a href="<?= url('/budget/') ?>">Budget</a></li>
                     <li><a href="<?= url('/uebersicht/') ?>">Übersicht</a></li>
                 </ul>
             </nav>

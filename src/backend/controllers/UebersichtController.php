@@ -11,6 +11,8 @@ $data = loadEventData($pdo, $eventId);
 $shareToken = ensureShareToken($pdo, $eventId);
 $shareUrl = (!empty($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . url('/teilen/') . '?token=' . $shareToken;
 
+$budget = calculateEventBudget($pdo, $data);
+
 $ortLabels = [
     'zuhause' => '🏠 Zuhause',
     'veranstaltungsraum' => '🏢 Veranstaltungsraum',

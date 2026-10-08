@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS events (
     termin_time TIME DEFAULT NULL,
     termin_endtime TIME DEFAULT NULL,
     termin_notes TEXT DEFAULT NULL,
+    budget_limit DECIMAL(10,2) NULL DEFAULT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     rejected_at TIMESTAMP NULL DEFAULT NULL,
@@ -55,6 +56,47 @@ CREATE TABLE IF NOT EXISTS login_attempts (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     UNIQUE KEY uniq_identifier (identifier)
 );
+
+-- Preis-Katalog fuer den automatischen Budget-Tracker: was jede
+-- Auswahlmoeglichkeit (Ort, Unterhaltung, Mobiliar, Menue, Energie) kostet.
+-- Wird vom Admin unter /admin/pricing.php gepflegt.
+CREATE TABLE IF NOT EXISTS pricing_catalog (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    category VARCHAR(32) NOT NULL,
+    item_key VARCHAR(64) NOT NULL,
+    price DECIMAL(10,2) NOT NULL DEFAULT 0,
+    UNIQUE KEY uniq_category_item (category, item_key)
+);
+
+INSERT INTO pricing_catalog (category, item_key, price) VALUES
+    ('ort', 'zuhause', 0),
+    ('ort', 'veranstaltungsraum', 450),
+    ('ort', 'restaurant', 600),
+    ('ort', 'draussen', 100),
+    ('ort', 'hotel', 800),
+    ('ort', 'anderer_ort', 200),
+
+    ('unterhaltung', 'sound', 150),
+    ('unterhaltung', 'tv', 50),
+    ('unterhaltung', 'karaoke', 120),
+    ('unterhaltung', 'band', 900),
+    ('unterhaltung', 'spiele', 40),
+    ('unterhaltung', 'comedy', 500),
+
+    ('mobilliar', 'stuehle', 80),
+    ('mobilliar', 'tische', 100),
+    ('mobilliar', 'grill', 60),
+    ('mobilliar', 'bar', 150),
+
+    ('menue', 'menue_pauschal', 0),
+
+    ('energie', 'stromanschluss', 0),
+    ('energie', 'generator', 180),
+    ('energie', 'verlaengerung', 15),
+    ('energie', 'beleuchtung', 90),
+    ('energie', 'notstrom', 120),
+    ('energie', 'technik', 70)
+ON DUPLICATE KEY UPDATE price = price;
 
 -- ============================================
 -- Nach der ersten Registrierung: dich selbst zum Admin machen.

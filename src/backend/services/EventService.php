@@ -266,6 +266,177 @@ function saveEventData(PDO $pdo, int $eventId, array $fields): void
 }
 
 // ============================================
+// Budget-Tracker (automatische Kostenberechnung)
+// ============================================
+
+/**
+ * Feste Struktur des Preis-Katalogs: welche Kategorien es gibt, welche
+ * Auswahlmöglichkeiten dazugehören und wie sie beschriftet werden.
+ * Die eigentlichen Preise liegen in der DB (pricing_catalog) und werden
+ * vom Admin unter /admin/pricing.php gepflegt.
+ */
+function pricingCatalogDefinition(): array
+{
+    return [
+        'ort' => [
+            'label' => '📍 Ort',
+            'items' => [
+                'zuhause' => 'Zuhause',
+                'veranstaltungsraum' => 'Veranstaltungsraum',
+                'restaurant' => 'Restaurant',
+                'draussen' => 'Draußen',
+                'hotel' => 'Hotel',
+                'anderer_ort' => 'Anderer Ort',
+            ],
+        ],
+        'unterhaltung' => [
+            'label' => '🎉 Unterhaltung',
+            'items' => [
+                'sound' => 'Sound / Musik',
+                'tv' => 'TV / Filme',
+                'karaoke' => 'Karaoke',
+                'band' => 'Live Band',
+                'spiele' => 'Spiele / Quiz',
+                'comedy' => 'Comedy / Show',
+            ],
+        ],
+        'mobilliar' => [
+            'label' => '🪑 Mobiliar',
+            'items' => [
+                'stuehle' => 'Stühle',
+                'tische' => 'Tische',
+                'grill' => 'Grill',
+                'bar' => 'Bar',
+            ],
+        ],
+        'menue' => [
+            'label' => '📄 Menü',
+            'items' => [
+                'menue_pauschal' => 'Menü (Pauschale pro Event)',
+            ],
+        ],
+        'energie' => [
+            'label' => '⚡ Energieversorgung',
+            'items' => [
+                'stromanschluss' => 'Stromanschluss',
+                'generator' => 'Generator',
+                'verlaengerung' => 'Verlängerungskabel',
+                'beleuchtung' => 'Beleuchtung',
+                'notstrom' => 'Notstrom',
+                'technik' => 'Technik-Anschlüsse',
+            ],
+        ],
+    ];
+}
+
+/**
+ * Lädt alle hinterlegten Preise als [kategorie][position] => Preis.
+ */
+function getPricingCatalog(PDO $pdo): array
+{
+    $stmt = $pdo->query('SELECT category, item_key, price FROM pricing_catalog');
+    $prices = [];
+
+    foreach ($stmt->fetchAll() as $row) {
+        $prices[$row['category']][$row['item_key']] = (float) $row['price'];
+    }
+
+    return $prices;
+}
+
+/**
+ * Setzt den Preis für eine einzelne Katalog-Position (Admin-Funktion).
+ */
+function setPricingPrice(PDO $pdo, string $category, string $itemKey, float $price): void
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO pricing_catalog (category, item_key, price)
+         VALUES (:category, :item_key, :price)
+         ON DUPLICATE KEY UPDATE price = VALUES(price)'
+    );
+    $stmt->execute([
+        'category' => $category,
+        'item_key' => $itemKey,
+        'price' => $price,
+    ]);
+}
+
+/**
+ * Setzt oder entfernt das vom Kunden festgelegte Budget-Limit eines Events
+ * (null = kein Limit gesetzt).
+ */
+function updateEventBudgetLimit(PDO $pdo, int $eventId, ?float $limit): void
+{
+    $stmt = $pdo->prepare('UPDATE events SET budget_limit = :limit WHERE id = :id');
+    $stmt->execute(['limit' => $limit, 'id' => $eventId]);
+}
+
+/**
+ * Berechnet automatisch, was die aktuelle Auswahl eines Events kostet
+ * (anhand der vom Admin hinterlegten Preise) und vergleicht das Ergebnis
+ * mit dem vom Kunden gesetzten Budget-Limit.
+ *
+ * $eventData ist das Ergebnis von loadEventData() (oder eine kompatible
+ * Struktur mit ort/unterhaltung/mobilliar/menue/energie/budget_limit).
+ */
+function calculateEventBudget(PDO $pdo, array $eventData): array
+{
+    $prices = getPricingCatalog($pdo);
+    $definition = pricingCatalogDefinition();
+
+    $items = [];
+    $total = 0.0;
+
+    if (!empty($eventData['ort']) && isset($prices['ort'][$eventData['ort']])) {
+        $price = $prices['ort'][$eventData['ort']];
+        $items[] = [
+            'categoryLabel' => $definition['ort']['label'],
+            'itemLabel' => $definition['ort']['items'][$eventData['ort']] ?? $eventData['ort'],
+            'price' => $price,
+        ];
+        $total += $price;
+    }
+
+    foreach (['unterhaltung', 'mobilliar', 'energie'] as $category) {
+        foreach ((array) ($eventData[$category] ?? []) as $itemKey) {
+            if (!isset($prices[$category][$itemKey])) {
+                continue;
+            }
+
+            $price = $prices[$category][$itemKey];
+            $items[] = [
+                'categoryLabel' => $definition[$category]['label'],
+                'itemLabel' => $definition[$category]['items'][$itemKey] ?? $itemKey,
+                'price' => $price,
+            ];
+            $total += $price;
+        }
+    }
+
+    if (!empty($eventData['menue'])) {
+        $price = $prices['menue']['menue_pauschal'] ?? 0.0;
+        $items[] = [
+            'categoryLabel' => $definition['menue']['label'],
+            'itemLabel' => $eventData['menue'],
+            'price' => $price,
+        ];
+        $total += $price;
+    }
+
+    $limit = isset($eventData['budget_limit']) && $eventData['budget_limit'] !== null
+        ? (float) $eventData['budget_limit']
+        : null;
+
+    return [
+        'items' => $items,
+        'total' => $total,
+        'limit' => $limit,
+        'fits' => $limit === null ? null : ($total <= $limit),
+        'difference' => $limit === null ? null : ($limit - $total),
+    ];
+}
+
+// ============================================
 // Admin-Funktionen
 // ============================================
 
@@ -427,7 +598,7 @@ function ensureShareToken(PDO $pdo, int $eventId): string
     $token = bin2hex(random_bytes(16));
 
     $updateStmt = $pdo->prepare('UPDATE events SET share_token = :token WHERE id = :id');
-    $updateStmt->execute(['token'=> $token, 'id' => $eventId]);
+    $updateStmt->execute(['token' => $token, 'id' => $eventId]);
 
     return $token;
 }
