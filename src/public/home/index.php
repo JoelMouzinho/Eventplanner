@@ -56,7 +56,7 @@ require_once __DIR__ . '/../../backend/controllers/HomeController.php';
             </a>
             <a href="<?= url('/budget/') ?>" class="feature">
                 <h3>Budget</h3>
-                <p>Behalte deine geplanten und tatsächlichen Kosten im Blick.</p>
+                <p>Sieh automatisch, ob deine Auswahl in dein Budget passt.</p>
             </a>
             <a href="<?= url('/uebersicht/') ?>" class="feature">
                 <h3>Übersicht</h3>

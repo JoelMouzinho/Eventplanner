@@ -82,17 +82,17 @@ require_once __DIR__ . '/../../backend/controllers/UebersichtController.php';
 
             <div class="overview-card">
                 <h3>💰 Budget</h3>
-                <p>Geplant: CHF <?= number_format($budgetTotals['planned'], 2, '.', "'") ?></p>
-                <p>Tatsächlich: CHF <?= number_format($budgetTotals['actual'], 2, '.', "'") ?></p>
+                <p>Berechnete Kosten: CHF <?= number_format($budget['total'], 2, '.', "'") ?></p>
 
-                <?php if ($budgetLimit !== null): ?>
-                    <?php if ($budgetTotals['actual'] > $budgetLimit): ?>
-                        <p class="budget-over" style="font-weight:bold;">
-                            ⚠️ Limit (CHF <?= number_format($budgetLimit, 2, '.', "'") ?>) überschritten
-                        </p>
+                <?php if ($budget['limit'] !== null): ?>
+                    <p>Dein Budget: CHF <?= number_format($budget['limit'], 2, '.', "'") ?></p>
+                    <?php if ($budget['fits']): ?>
+                        <p class="budget-ok" style="font-weight:bold;">✅ Passt ins Budget</p>
                     <?php else: ?>
-                        <p class="overview-empty">Limit: CHF <?= number_format($budgetLimit, 2, '.', "'") ?></p>
+                        <p class="budget-over" style="font-weight:bold;">❌ Passt nicht ins Budget</p>
                     <?php endif; ?>
+                <?php else: ?>
+                    <p class="overview-empty">Noch kein Budget festgelegt</p>
                 <?php endif; ?>
 
                 <a href="<?= url('/budget/') ?>" class="overview-empty" style="text-decoration:underline;">Details

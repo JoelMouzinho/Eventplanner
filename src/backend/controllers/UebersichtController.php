@@ -11,8 +11,7 @@ $data = loadEventData($pdo, $eventId);
 $shareToken = ensureShareToken($pdo, $eventId);
 $shareUrl = (!empty($_SERVER['HTTPS']) ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . url('/teilen/') . '?token=' . $shareToken;
 
-$budgetTotals = getBudgetTotals($pdo, $eventId);
-$budgetLimit = $data['budget_limit'] !== null ? (float) $data['budget_limit'] : null;
+$budget = calculateEventBudget($pdo, $data);
 
 $ortLabels = [
     'zuhause' => '🏠 Zuhause',

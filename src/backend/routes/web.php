@@ -23,4 +23,5 @@ return [
     '/admin/events.php'        => ['view' => 'public/admin/events.php',           'controller' => 'AdminEventsController'],
     '/admin/users.php'         => ['view' => 'public/admin/users.php',            'controller' => 'AdminUsersController'],
     '/admin/event-detail.php'  => ['view' => 'public/admin/event-detail.php',     'controller' => 'AdminEventDetailController'],
+    '/admin/pricing.php'       => ['view' => 'public/admin/pricing.php',          'controller' => 'AdminPricingController'],
 ];

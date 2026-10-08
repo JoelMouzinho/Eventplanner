@@ -79,6 +79,8 @@ require_once __DIR__ . '/../../backend/controllers/AdminIndexController.php';
                 verwalten</a>
             <a href="<?= url('/admin/events.php') ?>" class="save-btn" style="text-decoration:none; display:inline-block;">🎉 Events
                 verwalten</a>
+            <a href="<?= url('/admin/pricing.php') ?>" class="save-btn" style="text-decoration:none; display:inline-block;">💰
+                Preise verwalten</a>
         </div>
     </main>
 

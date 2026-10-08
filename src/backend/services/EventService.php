@@ -266,26 +266,104 @@ function saveEventData(PDO $pdo, int $eventId, array $fields): void
 }
 
 // ============================================
-// Budget-Tracker
+// Budget-Tracker (automatische Kostenberechnung)
 // ============================================
 
 /**
- * Feste Kategorien für Budget-Posten (Auswahl im Formular, Beschriftung in Tabellen).
+ * Feste Struktur des Preis-Katalogs: welche Kategorien es gibt, welche
+ * Auswahlmöglichkeiten dazugehören und wie sie beschriftet werden.
+ * Die eigentlichen Preise liegen in der DB (pricing_catalog) und werden
+ * vom Admin unter /admin/pricing.php gepflegt.
  */
-function budgetCategoryLabels(): array
+function pricingCatalogDefinition(): array
 {
     return [
-        'ort' => '📍 Ort',
-        'unterhaltung' => '🎉 Unterhaltung',
-        'mobilliar' => '🪑 Mobiliar',
-        'menue' => '📄 Menü',
-        'energie' => '⚡ Energieversorgung',
-        'sonstiges' => '📦 Sonstiges',
+        'ort' => [
+            'label' => '📍 Ort',
+            'items' => [
+                'zuhause' => 'Zuhause',
+                'veranstaltungsraum' => 'Veranstaltungsraum',
+                'restaurant' => 'Restaurant',
+                'draussen' => 'Draußen',
+                'hotel' => 'Hotel',
+                'anderer_ort' => 'Anderer Ort',
+            ],
+        ],
+        'unterhaltung' => [
+            'label' => '🎉 Unterhaltung',
+            'items' => [
+                'sound' => 'Sound / Musik',
+                'tv' => 'TV / Filme',
+                'karaoke' => 'Karaoke',
+                'band' => 'Live Band',
+                'spiele' => 'Spiele / Quiz',
+                'comedy' => 'Comedy / Show',
+            ],
+        ],
+        'mobilliar' => [
+            'label' => '🪑 Mobiliar',
+            'items' => [
+                'stuehle' => 'Stühle',
+                'tische' => 'Tische',
+                'grill' => 'Grill',
+                'bar' => 'Bar',
+            ],
+        ],
+        'menue' => [
+            'label' => '📄 Menü',
+            'items' => [
+                'menue_pauschal' => 'Menü (Pauschale pro Event)',
+            ],
+        ],
+        'energie' => [
+            'label' => '⚡ Energieversorgung',
+            'items' => [
+                'stromanschluss' => 'Stromanschluss',
+                'generator' => 'Generator',
+                'verlaengerung' => 'Verlängerungskabel',
+                'beleuchtung' => 'Beleuchtung',
+                'notstrom' => 'Notstrom',
+                'technik' => 'Technik-Anschlüsse',
+            ],
+        ],
     ];
 }
 
 /**
- * Setzt oder entfernt das Budget-Limit eines Events (null = kein Limit gesetzt).
+ * Lädt alle hinterlegten Preise als [kategorie][position] => Preis.
+ */
+function getPricingCatalog(PDO $pdo): array
+{
+    $stmt = $pdo->query('SELECT category, item_key, price FROM pricing_catalog');
+    $prices = [];
+
+    foreach ($stmt->fetchAll() as $row) {
+        $prices[$row['category']][$row['item_key']] = (float) $row['price'];
+    }
+
+    return $prices;
+}
+
+/**
+ * Setzt den Preis für eine einzelne Katalog-Position (Admin-Funktion).
+ */
+function setPricingPrice(PDO $pdo, string $category, string $itemKey, float $price): void
+{
+    $stmt = $pdo->prepare(
+        'INSERT INTO pricing_catalog (category, item_key, price)
+         VALUES (:category, :item_key, :price)
+         ON DUPLICATE KEY UPDATE price = VALUES(price)'
+    );
+    $stmt->execute([
+        'category' => $category,
+        'item_key' => $itemKey,
+        'price' => $price,
+    ]);
+}
+
+/**
+ * Setzt oder entfernt das vom Kunden festgelegte Budget-Limit eines Events
+ * (null = kein Limit gesetzt).
  */
 function updateEventBudgetLimit(PDO $pdo, int $eventId, ?float $limit): void
 {
@@ -294,72 +372,68 @@ function updateEventBudgetLimit(PDO $pdo, int $eventId, ?float $limit): void
 }
 
 /**
- * Alle Budget-Posten eines Events, in Erfassungsreihenfolge.
+ * Berechnet automatisch, was die aktuelle Auswahl eines Events kostet
+ * (anhand der vom Admin hinterlegten Preise) und vergleicht das Ergebnis
+ * mit dem vom Kunden gesetzten Budget-Limit.
+ *
+ * $eventData ist das Ergebnis von loadEventData() (oder eine kompatible
+ * Struktur mit ort/unterhaltung/mobilliar/menue/energie/budget_limit).
  */
-function getBudgetItems(PDO $pdo, int $eventId): array
+function calculateEventBudget(PDO $pdo, array $eventData): array
 {
-    $stmt = $pdo->prepare('SELECT * FROM budget_items WHERE event_id = :event_id ORDER BY created_at ASC, id ASC');
-    $stmt->execute(['event_id' => $eventId]);
-    return $stmt->fetchAll();
-}
+    $prices = getPricingCatalog($pdo);
+    $definition = pricingCatalogDefinition();
 
-/**
- * Legt einen neuen Budget-Posten für ein Event an.
- */
-function addBudgetItem(PDO $pdo, int $eventId, string $category, string $label, float $plannedAmount, float $actualAmount): void
-{
-    $stmt = $pdo->prepare(
-        'INSERT INTO budget_items (event_id, category, label, planned_amount, actual_amount)
-         VALUES (:event_id, :category, :label, :planned_amount, :actual_amount)'
-    );
-    $stmt->execute([
-        'event_id' => $eventId,
-        'category' => $category,
-        'label' => $label,
-        'planned_amount' => $plannedAmount,
-        'actual_amount' => $actualAmount,
-    ]);
-}
+    $items = [];
+    $total = 0.0;
 
-/**
- * Löscht einen Budget-Posten (nur wenn er zum angegebenen Event gehört).
- */
-function deleteBudgetItem(PDO $pdo, int $eventId, int $itemId): void
-{
-    $stmt = $pdo->prepare('DELETE FROM budget_items WHERE id = :id AND event_id = :event_id');
-    $stmt->execute(['id' => $itemId, 'event_id' => $eventId]);
-}
-
-/**
- * Summiert geplante und tatsächliche Kosten eines Events, gesamt und je Kategorie.
- */
-function getBudgetTotals(PDO $pdo, int $eventId): array
-{
-    $items = getBudgetItems($pdo, $eventId);
-
-    $totals = [
-        'planned' => 0.0,
-        'actual' => 0.0,
-        'byCategory' => [],
-    ];
-
-    foreach ($items as $item) {
-        $category = $item['category'];
-        $planned = (float) $item['planned_amount'];
-        $actual = (float) $item['actual_amount'];
-
-        $totals['planned'] += $planned;
-        $totals['actual'] += $actual;
-
-        if (!isset($totals['byCategory'][$category])) {
-            $totals['byCategory'][$category] = ['planned' => 0.0, 'actual' => 0.0];
-        }
-
-        $totals['byCategory'][$category]['planned'] += $planned;
-        $totals['byCategory'][$category]['actual'] += $actual;
+    if (!empty($eventData['ort']) && isset($prices['ort'][$eventData['ort']])) {
+        $price = $prices['ort'][$eventData['ort']];
+        $items[] = [
+            'categoryLabel' => $definition['ort']['label'],
+            'itemLabel' => $definition['ort']['items'][$eventData['ort']] ?? $eventData['ort'],
+            'price' => $price,
+        ];
+        $total += $price;
     }
 
-    return $totals;
+    foreach (['unterhaltung', 'mobilliar', 'energie'] as $category) {
+        foreach ((array) ($eventData[$category] ?? []) as $itemKey) {
+            if (!isset($prices[$category][$itemKey])) {
+                continue;
+            }
+
+            $price = $prices[$category][$itemKey];
+            $items[] = [
+                'categoryLabel' => $definition[$category]['label'],
+                'itemLabel' => $definition[$category]['items'][$itemKey] ?? $itemKey,
+                'price' => $price,
+            ];
+            $total += $price;
+        }
+    }
+
+    if (!empty($eventData['menue'])) {
+        $price = $prices['menue']['menue_pauschal'] ?? 0.0;
+        $items[] = [
+            'categoryLabel' => $definition['menue']['label'],
+            'itemLabel' => $eventData['menue'],
+            'price' => $price,
+        ];
+        $total += $price;
+    }
+
+    $limit = isset($eventData['budget_limit']) && $eventData['budget_limit'] !== null
+        ? (float) $eventData['budget_limit']
+        : null;
+
+    return [
+        'items' => $items,
+        'total' => $total,
+        'limit' => $limit,
+        'fits' => $limit === null ? null : ($total <= $limit),
+        'difference' => $limit === null ? null : ($limit - $total),
+    ];
 }
 
 // ============================================
